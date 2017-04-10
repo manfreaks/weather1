@@ -1,0 +1,230 @@
+<!-- Adds "Raleway" Google Font -->
+<link href='https://fonts.googleapis.com/css?family=Dosis' rel='stylesheet' type='text/css'>
+<!-- Adds Weather Icons CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.5/css/weather-icons.min.css">
+<style>
+body {
+  font-family: 'Dosis', sans-serif;
+  background: url(https://theengineeringquest.files.wordpress.com/2015/09/mountains-night-clouds-lake.jpg) no-repeat center bottom fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+a {
+  color: inherit;
+  /* blue colors for links too */
+  
+  text-decoration: inherit;
+  /* no underline */
+}
+
+#content {
+  padding: 0px 230px 0px 230px;
+}
+
+#content2 {
+  padding: 0px 215px 0px 215px;
+}
+
+#content_box,
+#credits {
+  color: #ffffff;
+  background-color: #fff;
+  background-color: rgba(200, 200, 200, 0.5);
+}
+
+#credits {
+  padding: 0px 0px 10px 0px;
+}
+
+#temperature {
+  font-size: 120px;
+}
+
+#icon {
+  font-size: 100px;
+  background-color: red;
+}
+
+#data {
+  padding: 37px 0px 29px 0px;
+  font-size: 25px;
+}
+
+#temperature:nth-child(1) {
+	padding: 0px 9px 0px 0px;
+	font-size: 90px !important;
+}
+/*
+#temperature:nth-child(2) {
+  padding: 0px 9px 0px 0px;
+  font-size: 110px !important;
+}
+*/
+
+#temperature i {
+  font-size: 70px !important;
+}
+
+#location i {
+  padding: 0px 11px 0px 0px;
+}
+
+#wind i {
+  padding: 0px 5px 0px 0px;
+}
+
+#weather i {
+  padding: 0px 8px 0px 0px;
+}
+</style>
+<body>
+  <div class="container" id="content">
+    <div class="row" id="content_box">
+      <div class="col-md-7 text-center" id="temperature">
+      </div>
+      <div class="col-md-5 text-left">
+        <div class="row" id="data">
+          <div class="col-md-12" id="location">Retrieving Data...</div>
+          <!-- country + city -->
+          <div class="col-md-12" id="wind">Retrieving Data...</div>
+          <div class="col-md-12" id="weather">Retrieving Data...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="content2">
+    <div class="text-center" id="credits">
+      Powered by <a href="http://openweathermap.org/api">OpenWeatherMap</a> & <a href="https://ipinfo.io/developers">ipinfo</a> API
+    </div>
+  </div>
+  
+  <script>
+
+  getWeatherInfo('-7.3384172', '112.7572248');
+
+
+
+
+
+// API Call to get location data based on user's location coordinates
+function getWeatherInfo(longitude, latitude) {
+
+  // Using openweathermap API
+  var baseURL = "http://api.openweathermap.org/data/2.5";
+  var request = "/weather?lat=" + longitude + "&lon=" + latitude;
+  var API_Key = "&APPID=06d45a853a7b0beeeb3d1fbde62487aa";
+
+  // Use jQuery AJAX method to request JSON from server
+  $.ajax({
+    url: baseURL + request + API_Key,
+    dataType: "jsonp",
+
+    // If we receive a reply from server
+    success: function(response) {
+
+      $("#temperature").text(""); // Clear temperature DIV Field
+      $("#temperature").append("<i></i>"); // Add weatherIcon for temperature field
+      $("#temperature i").addClass("wi wi-thermometer");
+      $("#temperature").append(convertTemperature(response.main.temp, "C")); // Extract data from JSON string, convert it & input temp data  
+      $("#temperature").append("<i></i>"); // Add weatherIcon for temperature field (units)
+      $("#temperature i").addClass("wi wi-celsius");
+
+      $("#wind").text(""); // Clear wind DIV Field
+      $("#wind").append("<i></i>"); // Add weatherIcon for wind field
+      $("#wind i").addClass("wi wi-strong-wind");
+      $("#wind").append(getCardinalDirection(response.wind.deg) + " " + (response.wind.speed * 3.6).toFixed(1) + "km/h"); // Extract data from JSON string, convert it & input wind data 
+
+      changeWeatherIcon(response.weather[0].main); // Change weatherIcon for weather field
+      $("#weather").append(titleCase(response.weather[0].description)); // Extract data from JSON string, convert it & input weather description
+    },
+    // If we FAIL to receive a reply from server
+    error: function(xhr, status, error) {
+      $("#wind").text("Fail to retrieve server data"); // Replace fields with error message
+      $("#weather").text("");
+    }
+  });
+}
+
+// Converts the raw temperature data extracted from JSON API response into appropriate units
+// "C" = Celsius, "F" = Fahrenheit, "K" = Kelvin
+function convertTemperature(tempRaw, unit) {
+  if (unit == "C")
+    return (tempRaw - 273.15).toFixed(1).toString();
+  else if (unit == "F")
+    return ((tempRaw - 273.15) * 9 / 5 + 32).toFixed(1).toString() + "°F";
+  else
+    return tempRaw.toFixed(1).toString() + "K";
+}
+
+// Obtained from: https://gist.github.com/basarat/4670200
+// Given "0-360" returns the nearest cardinal direction "N/NE/E/SE/S/SW/W/NW/N" 
+function getCardinalDirection(angle) {
+
+  var directions = 8;
+  var degree = 360 / directions;
+  angle = angle + degree / 2;
+
+  if (angle >= 0 * degree && angle < 1 * degree)
+    return "N";
+  if (angle >= 1 * degree && angle < 2 * degree)
+    return "NE";
+  if (angle >= 2 * degree && angle < 3 * degree)
+    return "E";
+  if (angle >= 3 * degree && angle < 4 * degree)
+    return "SE";
+  if (angle >= 4 * degree && angle < 5 * degree)
+    return "S";
+  if (angle >= 5 * degree && angle < 6 * degree)
+    return "SW";
+  if (angle >= 6 * degree && angle < 7 * degree)
+    return "W";
+  if (angle >= 7 * degree && angle < 8 * degree)
+    return "NW";
+}
+
+// Changes the weatherIcon in the weather field depending on the weatherType extracted from the JSON string
+function changeWeatherIcon(weatherType) {
+
+  weatherType = weatherType.toLowerCase();
+  $("#weather").text("");
+  $("#weather").append("<i></i>");
+
+  if (weatherType.indexOf("clouds") != -1) {
+    $("#weather i").addClass("wi wi-cloudy");
+  } else if (weatherType.indexOf("rain") != -1) {
+    $("#weather i").addClass("wi wi-rain");
+  } else if (weatherType.indexOf("thunderstorm") != -1) {
+    $("#weather i").addClass("wi wi-thunderstorm");
+  } else if (weatherType.indexOf("snow") != -1) {
+    $("#weather i").addClass("wi wi-snow");
+  } else if (weatherType.indexOf("mist") != -1) {
+    $("#weather i").addClass("wi wi-smoke");
+  } else {
+    $("#weather i").addClass("wi wi-day-sunny");
+  }
+
+}
+
+// Changes 1st Char of each word (from input string) into Upper Case
+function titleCase(str) {
+
+  var array = str.split(" ");
+
+  for (var i = 0; i < array.length; i++) {
+
+    var temp_array = array[i].split(''); // "ab" => "a","b"
+    temp_array[0] = temp_array[0].toUpperCase(); // "a","b" => "A","b"
+
+    for (var j = 1; j < temp_array.length; j++)
+      temp_array[j] = temp_array[j].toLowerCase(); // "a","b" => "A","b"
+
+    array[i] = temp_array.join(''); // "A","b" => "Ab"
+  }
+
+  return array.join(' ');
+}
+  </script>
